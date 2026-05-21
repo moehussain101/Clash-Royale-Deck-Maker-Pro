@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in the application.",
+      "type": "object",
+      "properties": {
+        "playerTag": { "type": "string" }
+      }
+    },
+    "Deck": {
+      "title": "Deck",
+      "description": "A user created deck of cards.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "cards": { "type": "array", "items": { "type": "string" } },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "createdAt": { "type": "string" }, // Timestamp
+        "isPublic": { "type": "boolean" },
+        "avgElixir": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "downvotes": { "type": "number" }
+      },
+      "required": ["name", "cards", "creatorId", "isPublic"]
+    },
+    "DeckVote": {
+      "title": "DeckVote",
+      "description": "A vote cast by a user on a shared deck.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "vote": { "type": "number" }, // 1 or -1
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "vote"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles."
+    },
+    "/decks/{deckId}": {
+      "schema": { "$ref": "#/entities/Deck" },
+      "description": "Stores user created decks."
+    },
+    "/decks/{deckId}/votes/{voteId}": {
+      "schema": { "$ref": "#/entities/DeckVote" },
+      "description": "Tracks upvotes and downvotes for each deck."
+    }
+  }
+}

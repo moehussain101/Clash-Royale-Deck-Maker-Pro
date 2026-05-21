@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidUserCreate(incoming()) && incoming().keys().hasAll(['playerTag']);
+      allow update: if isOwner(userId) && isValidUserUpdate(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['playerTag', 'displayName', 'favorites']);
+    }
+
+    function isValidUserCreate(user) {
+      return user.playerTag is string && user.playerTag.size() <= 20;
+    }
+    function isValidUserUpdate(user) {
+      return (!user.keys().hasAny(['playerTag']) || (user.playerTag is string && user.playerTag.size() <= 20))
+             && (!user.keys().hasAny(['displayName']) || (user.displayName is string && user.displayName.size() <= 100))
+             && (!user.keys().hasAny(['favorites']) || user.favorites is list);
+    }
+
+    match /decks/{deckId} {
+      allow get: if resource.data.isPublic == true || resource.data.creatorId == request.auth.uid;
+      allow list: if resource.data.isPublic == true || resource.data.creatorId == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && isValidId(deckId)
+                    && isValidDeckCreate(incoming())
+                    && incoming().creatorId == request.auth.uid;
+      
+      allow update: if isValidId(deckId) && (
+        (isOwner(existing().creatorId) 
+          && isValidDeckUpdate(incoming())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'cards', 'isPublic', 'avgElixir', 'upvotes', 'downvotes'])
+        ) ||
+        (isSignedIn()
+          && isValidDeckUpdate(incoming())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'downvotes'])
+        )
+      );
+      
+      allow delete: if isValidId(deckId) && isOwner(existing().creatorId);
+      
+      match /votes/{voteId} {
+        allow get: if true;
+        allow list: if true;
+        allow create: if isSignedIn() 
+                      && isValidId(voteId)
+                      && isOwner(voteId)
+                      && isValidVote(incoming())
+                      && incoming().userId == request.auth.uid;
+        allow update: if isSignedIn() 
+                      && isValidId(voteId)
+                      && isOwner(voteId)
+                      && isValidVote(incoming())
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['vote', 'updatedAt']);
+        allow delete: if isSignedIn() && isOwner(voteId);
+      }
+    }
+
+    function isValidDeckCreate(deck) {
+      return deck.name is string && deck.name.size() > 0 && deck.name.size() <= 100
+          && deck.cards is list && deck.cards.size() == 8
+          && (!deck.keys().hasAny(['upvotes']) || deck.upvotes is number)
+          && (!deck.keys().hasAny(['downvotes']) || deck.downvotes is number)
+          && (!deck.keys().hasAny(['createdAt']) || deck.createdAt is timestamp)
+          && deck.creatorId is string;
+    }
+
+    function isValidDeckUpdate(deck) {
+      return deck.name is string && deck.name.size() > 0 && deck.name.size() <= 100
+          && deck.cards is list && deck.cards.size() == 8
+          && (!deck.keys().hasAny(['upvotes']) || deck.upvotes is number)
+          && (!deck.keys().hasAny(['downvotes']) || deck.downvotes is number)
+          && deck.creatorId == existing().creatorId;
+    }
+
+    function isValidVote(vote) {
+      return vote.userId is string && vote.vote is number && (vote.vote == 1 || vote.vote == -1);
+    }
+  }
+}
