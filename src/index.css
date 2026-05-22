@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-royal-blue: #1e40af;
+  --color-royal-gold: #fbbf24;
+  --color-royal-dark: #0f172a;
+  --color-royal-card: #1e293b;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+}
+
+.card-common { @apply border-slate-700 bg-slate-900/50; }
+.card-rare { @apply border-orange-500/50 bg-orange-950/20; }
+.card-epic { @apply border-purple-500/50 bg-purple-950/20; }
+.card-legendary { 
+  @apply border-cyan-400/50 bg-cyan-950/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]; 
+}
+.card-champion {
+  @apply border-yellow-400/50 bg-yellow-950/20 shadow-[0_0_20px_rgba(250,204,21,0.2)]; 
+}
+.card-hero {
+  @apply border-amber-500/50 bg-amber-950/20;
+}
+
+.evolved-glow {
+  @apply border-pink-500 shadow-[0_0_25px_rgba(236,72,153,0.4)];
+  animation: pulse-evo 2s infinite ease-in-out;
+}
+
+.evolved-wild-glow {
+  @apply border-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.4)];
+  animation: pulse-evo-wild 2s infinite ease-in-out;
+}
+
+.hero-glow {
+  @apply border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.4)];
+  animation: pulse-hero 2s infinite ease-in-out;
+}
+
+.hero-wild-glow {
+  @apply border-yellow-500 shadow-[0_0_25px_rgba(234,179,8,0.4)];
+  animation: pulse-hero-wild 2s infinite ease-in-out;
+}
+
+.hero-tint {
+  filter: sepia(0.6) saturate(2.5) hue-rotate(-15deg) brightness(1.2) drop-shadow(0 0 10px rgba(245,158,11,0.6));
+}
+
+@keyframes pulse-evo {
+  0%, 100% { box-shadow: 0 0 15px rgba(236, 72, 153, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(236, 72, 153, 0.6); }
+}
+
+@keyframes pulse-evo-wild {
+  0%, 100% { box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+}
+
+@keyframes pulse-hero {
+  0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); }
+}
+
+@keyframes pulse-hero-wild {
+  0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); }
+}
+
+.diamond-badge {
+  @apply absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rotate-45 border-2 shadow-2xl flex items-center justify-center z-30;
+}
